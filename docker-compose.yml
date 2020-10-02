@@ -1,0 +1,25 @@
+version: "3"
+services:
+    bot:
+        build: ./services/bot
+        restart: always
+        links:
+            - database
+        environment:
+            DISCORD_TOKEN: ${DISCORD_TOKEN}
+            MYSQL_HOST: database
+            MYSQL_USER: bot
+            MYSQL_PASSWORD: RTfPJaV2AdHnDEecgTPMbeLG4FgvEJcD
+            MYSQL_DATABASE: bot
+
+    database:
+        image: mariadb:latest
+        volumes:
+            - ${PWD}/.data/mariadb:/var/lib/mysql
+            - ./services/database/database-init.sql:/docker-entrypoint-initdb.d/database-init.sql
+        restart: always
+        environment:
+            MYSQL_ROOT_PASSWORD: RTfPJaV2AdHnDEecgTPMbeLG4FgvEJcD
+            MYSQL_USER: bot
+            MYSQL_PASSWORD: RTfPJaV2AdHnDEecgTPMbeLG4FgvEJcD
+            MYSQL_DATABASE: bot
