@@ -1,8 +1,13 @@
 import { Message } from "discord.js";
 import { Database } from "../Database";
+import { Permission } from "../Permission";
 import { Command } from "./Command";
 
 export class CreateReactionRoleCommand implements Command {
+    getRequiredPermission(): Permission {
+        return Permission.REACTIONROLE_CREATE;
+    }
+
     handle(parameters: string[], message: Message): Promise<any> {
         if (parameters.length != 3)
             throw new Error("Du musst die `messageId`, die Rolle `@role` als auch das `emoji` mitgeben.");

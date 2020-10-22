@@ -4,6 +4,7 @@ import { CreateReactionRoleCommand } from "./command/CreateReactionRoleCommand";
 import { DeleteReactionRoleCommand } from "./command/DeleteReactionRoleCommand";
 import { HelpCommand } from "./command/HelpCommand";
 import { RecognizablePhraseCommand } from "./command/RecognizablePhraseCommand";
+import { PermissionManager } from "./PermissionManager";
 
 export class CommandDispatcher {
     public evaluateMessage(message: Message) {
@@ -34,14 +35,17 @@ export class CommandDispatcher {
 
             args.shift();
             if (command != null)
-                try {
-                    let promise = command.handle(args, message);
 
-                    if (promise instanceof Promise) {
-                        promise.catch((error) => {
-                            message.channel.send("Error: " + error.message);
-                        });
-                    }
+                try {
+                    if(PermissionManager.getInstance().checkPermission(command.getRequiredPermission(), message.member)) {
+                        let promise = command.handle(args, message);
+
+                        if (promise instanceof Promise) {
+                            promise.catch((error) => {
+                                message.channel.send("Error: " + error.message);
+                            });
+                        }
+                    } else throw new Error("Du hast keine Berichtigung dieses Kommando auszuführen");
                 } catch (error) {
                     message.channel.send("Error: " + error.message);
                 }

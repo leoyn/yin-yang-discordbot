@@ -1,7 +1,12 @@
 import { Message, MessageEmbed } from "discord.js";
+import { Permission } from "../Permission";
 import { Command } from "./Command";
 
 export class HelpCommand implements Command {
+    getRequiredPermission(): Permission {
+        return Permission.HELP;
+    }
+
     handle(parameters: string[], message: Message): void {
         const messageEmbed = new MessageEmbed();
 

@@ -1,7 +1,12 @@
 import { Message, MessageEmbed } from "discord.js";
+import { Permission } from "../Permission";
 import { Command } from "./Command";
 
 export class RecognizablePhraseCommand implements Command {
+    getRequiredPermission(): Permission {
+        return Permission.PHRASE;
+    }
+
     handle(parameters: string[], message: Message): void {
         const recognizablePhrases = [
             {
@@ -22,7 +27,7 @@ export class RecognizablePhraseCommand implements Command {
             },
             {
                 phrase: "Dieser Student bekommt 100 Punkte.",
-                author: "U. Hoffmann",
+                author: "T. Slotos",
             },
             {
                 phrase: "Achtung! Schwierige Frage.",
