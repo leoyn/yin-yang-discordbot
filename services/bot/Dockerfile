@@ -7,6 +7,7 @@ RUN npm install
 
 COPY tsconfig.json /app/tsconfig.json
 COPY src /app/src
+RUN npm run build
 
 ENV PGHOST="database"
 ENV PGUSER="app"

@@ -3,7 +3,7 @@ on:
     branches:
       - production
 
-name: Build production container
+name: Build & Deploy to production environment
 jobs:
   production-container-build:
     name: Production container build
@@ -23,3 +23,16 @@ jobs:
 
       - name: Build image and push to registry
         run: docker buildx bake --set "*.platform=linux/arm/v7" --push --no-cache
+
+  production-deployment-rollout:
+    needs: production-container-build
+    name: Production rollout
+    runs-on: ubuntu-latest
+    steps:
+      - name: Rollout new deployment
+        uses: steebchen/kubectl@master
+        env:
+          KUBE_CONFIG_DATA: ${{ secrets.KUBE_CONFIG }}
+          KUBECTL_VERSION: "1.15"
+        with:
+          args: '"rollout restart deployments/bot"'
