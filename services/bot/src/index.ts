@@ -13,6 +13,7 @@ DatabaseConnector.getInstance().connect(
 
 const server = http.createServer((request, response) => {
     response.writeHead(200);
+    response.end();
 });
 
 BotService.getInstance()
