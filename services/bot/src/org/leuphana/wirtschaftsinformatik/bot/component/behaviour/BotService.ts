@@ -36,9 +36,8 @@ export class BotService {
     public connect(token: string): Promise<any> {
         return this.client.login(token).then(() => {
             this.client.user.setPresence({
-                status: "idle",
                 activity: {
-                    type: "PLAYING",
+                    type: "WATCHING",
                     name: "+help",
                 },
             });
