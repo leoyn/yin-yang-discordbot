@@ -32,6 +32,12 @@ spec:
           imagePullPolicy: Always
           name: bot
           resources: {}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
       imagePullSecrets:
         - name: registrypullsecret
       restartPolicy: Always
