@@ -1,14 +1,15 @@
-import { Bot } from "./org/leuphana/wirtschaftsinformatik/Bot";
-import { Database } from "./org/leuphana/wirtschaftsinformatik/Database";
+import { BotService } from "./org/leuphana/wirtschaftsinformatik/bot/component/behaviour/BotService";
+import { DatabaseConnector } from "./org/leuphana/wirtschaftsinformatik/bot/connector/DatabaseConnector";
 
-Database.getInstance().connect(
-    process.env.MYSQL_HOST,
-    process.env.MYSQL_USER,
-    process.env.MYSQL_PASSWORD,
-    process.env.MYSQL_DATABASE
+DatabaseConnector.getInstance().connect(
+    process.env.PGHOST,
+    parseInt(process.env.PGPORT),
+    process.env.PGUSER,
+    process.env.PGPASSWORD,
+    process.env.PGDATABASE
 );
 
-Bot.getInstance()
+BotService.getInstance()
     .connect(process.env.DISCORD_TOKEN)
     .then(() => {
         console.log("Bot connected!");

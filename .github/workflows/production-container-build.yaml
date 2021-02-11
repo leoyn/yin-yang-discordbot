@@ -1,0 +1,25 @@
+on:
+  push:
+    branches:
+      - production
+
+name: Build production container
+jobs:
+  production-container-build:
+    name: Production container build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+        name: Checkout
+
+      - name: Login to registry
+        run: echo ${{ secrets.CONTAINER_REGISTRY_PASSWORD }} | docker login ${{ secrets.CONTAINER_REGISTRY_HOST }} -u ${{ secrets.CONTAINER_REGISTRY_USERNAME }} --password-stdin
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build image and push to registry
+        run: docker buildx bake --set "*.platform=linux/arm/v7" --push --no-cache

@@ -11,7 +11,9 @@ export class HelpCommand implements Command {
         const messageEmbed = new MessageEmbed();
 
         messageEmbed.addField("Diese Hilfe aufrufen", "`+help`");
-        messageEmbed.addField("Gibt einen bekannten Spruch zurück.", "`+phrase`");
+        messageEmbed.addField("Gibt einen bekannten Spruch zurück", "`+phrase`");
+        messageEmbed.addField("Zeigt den neusten XKCD", "`+xkcd`");
+        messageEmbed.addField("Gibt den aktuellen Mensaplan zurück", "`+mensa`");
 
         message.channel.send(messageEmbed);
     }

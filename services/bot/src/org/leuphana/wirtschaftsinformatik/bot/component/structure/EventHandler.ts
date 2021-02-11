@@ -1,7 +1,7 @@
-import { Client, MessageReaction, ReactionEmoji, TextChannel } from "discord.js";
+import { Client, MessageReaction, TextChannel } from "discord.js";
 import { EventEmitter } from "events";
 import { EventDispatcher } from "./EventDispatcher";
-import { Bot } from "./Bot";
+import { BotService } from "../behaviour/BotService";
 
 export class EventHandler extends EventEmitter {
     constructor() {
@@ -12,7 +12,7 @@ export class EventHandler extends EventEmitter {
         let eventDispatcher = EventDispatcher.getInstance();
 
         if (["MESSAGE_REACTION_ADD", "MESSAGE_REACTION_REMOVE"].includes(data.t)) {
-            const client: Client = Bot.getInstance().getClient();
+            const client: Client = BotService.getInstance().getClient();
 
             client.channels
                 .fetch(data.d.channel_id)

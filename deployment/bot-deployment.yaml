@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: yinyangdiscordbot
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: bot
+  name: bot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: bot
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: bot
+    spec:
+      containers:
+        - env:
+            - name: DISCORD_TOKEN
+              value: ${DISCORD_TOKEN}
+          image: container.apps.mixify.ga/yinyangdiscordbot/bot:latest
+          imagePullPolicy: Always
+          name: bot
+          resources: {}
+      imagePullSecrets:
+        - name: registrypullsecret
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}

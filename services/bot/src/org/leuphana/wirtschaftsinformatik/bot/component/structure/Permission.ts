@@ -3,4 +3,6 @@ export enum Permission {
     REACTIONROLE_DELETE,
     HELP,
     PHRASE,
+    XKCD,
+    MEAL_PLAN
 }

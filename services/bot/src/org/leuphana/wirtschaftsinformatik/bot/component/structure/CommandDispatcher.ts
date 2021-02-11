@@ -2,6 +2,8 @@ import { Message, TextChannel } from "discord.js";
 import { Command } from "./command/Command";
 import { CreateReactionRoleCommand } from "./command/CreateReactionRoleCommand";
 import { DeleteReactionRoleCommand } from "./command/DeleteReactionRoleCommand";
+import { GetMealPlanCommand } from "./command/GetMealPlanCommant";
+import { GetNewestXKCDCommand } from "./command/GetNewestXKCDCommand";
 import { HelpCommand } from "./command/HelpCommand";
 import { RecognizablePhraseCommand } from "./command/RecognizablePhraseCommand";
 import { PermissionManager } from "./PermissionManager";
@@ -30,6 +32,12 @@ export class CommandDispatcher {
                     break;
                 case "help":
                     command = new HelpCommand();
+                    break;
+                case "xkcd":
+                    command = new GetNewestXKCDCommand();
+                    break;
+                case "mensa":
+                    command = new GetMealPlanCommand();
                     break;
             }
 

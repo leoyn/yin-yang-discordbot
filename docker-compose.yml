@@ -1,25 +1,18 @@
 version: "3"
 services:
     bot:
+        image: container.apps.mixify.ga/yinyangdiscordbot/bot:latest
         build: ./services/bot
         restart: always
         links:
             - database
         environment:
             DISCORD_TOKEN: ${DISCORD_TOKEN}
-            MYSQL_HOST: database
-            MYSQL_USER: bot
-            MYSQL_PASSWORD: RTfPJaV2AdHnDEecgTPMbeLG4FgvEJcD
-            MYSQL_DATABASE: bot
 
     database:
-        image: mariadb:latest
+        build:
+            context: ./services/database
+        image: container.apps.mixify.ga/yinyangdiscordbot/database:latest
         volumes:
-            - ${PWD}/.data/mariadb:/var/lib/mysql
-            - ./services/database/database-init.sql:/docker-entrypoint-initdb.d/database-init.sql
+            - ./.data/database:/var/lib/postgresql/data
         restart: always
-        environment:
-            MYSQL_ROOT_PASSWORD: RTfPJaV2AdHnDEecgTPMbeLG4FgvEJcD
-            MYSQL_USER: bot
-            MYSQL_PASSWORD: RTfPJaV2AdHnDEecgTPMbeLG4FgvEJcD
-            MYSQL_DATABASE: bot
