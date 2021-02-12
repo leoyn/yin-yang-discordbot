@@ -1,4 +1,4 @@
-import { Message, TextChannel } from "discord.js";
+import { DMChannel, Message, TextChannel } from "discord.js";
 import { Command } from "./command/Command";
 import { CreateReactionRoleCommand } from "./command/CreateReactionRoleCommand";
 import { DeleteReactionRoleCommand } from "./command/DeleteReactionRoleCommand";
@@ -13,9 +13,10 @@ export class CommandDispatcher {
         const prefix = "+";
 
         if (
+            !message.author.bot &&
             message.content.startsWith(prefix) &&
-            ((message.channel instanceof TextChannel && (<TextChannel>message.channel).name === "bot") ||
-                message.member.hasPermission("ADMINISTRATOR"))
+            !(message.channel instanceof DMChannel) &&
+            (message.channel instanceof TextChannel) && ((<TextChannel>message.channel).name === "bot" || message.member.hasPermission("ADMINISTRATOR"))
         ) {
             let command: Command;
             let args: string[] = message.content.substring(prefix.length).split(" ");
@@ -42,10 +43,10 @@ export class CommandDispatcher {
             }
 
             args.shift();
-            if (command != null)
-
-                try {
-                    if(PermissionManager.getInstance().checkPermission(command.getRequiredPermission(), message.member)) {
+           
+            try {
+                if (command != null) {
+                    if (PermissionManager.getInstance().checkPermission(command.getRequiredPermission(), message.member)) {
                         let promise = command.handle(args, message);
 
                         if (promise instanceof Promise) {
@@ -54,9 +55,10 @@ export class CommandDispatcher {
                             });
                         }
                     } else throw new Error("Du hast keine Berichtigung dieses Kommando auszuführen");
-                } catch (error) {
-                    message.channel.send("Error: " + error.message);
-                }
+                } else throw new Error("Dies Kommando existiert nicht. Kommandoübersicht mit `+help`");
+            } catch (error) {
+                message.channel.send("Error: " + error.message);
+            }
         }
     }
 }
