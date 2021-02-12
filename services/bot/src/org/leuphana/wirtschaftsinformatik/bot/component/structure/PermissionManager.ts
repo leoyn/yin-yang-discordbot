@@ -14,6 +14,19 @@ export class PermissionManager {
     }
 
     public checkPermission(permission: Permission, member: GuildMember): boolean {
-        return member.permissions.has("ADMINISTRATOR");
+
+        let state;
+
+        switch (permission) {
+            case Permission.REACTIONROLE_DELETE:
+            case Permission.REACTIONROLE_CREATE:
+                state = member.permissions.has("ADMINISTRATOR");
+                break;
+            default:
+                state = true;
+                break;
+        }
+
+        return state;
     }
 }

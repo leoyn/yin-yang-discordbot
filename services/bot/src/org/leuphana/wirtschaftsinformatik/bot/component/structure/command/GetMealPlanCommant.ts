@@ -13,10 +13,12 @@ export class GetMealPlanCommand implements Command {
 
                 mealDay.getMeals().forEach(meal => {
                     let ratingText = "";
-
                     for (let i = 0; i < 5; i++) ratingText += i < meal.getRating() ? "★" : "☆";
 
-                    mealText += `\`€ ${meal.getPrice().toFixed(2)}\` ${ratingText} ${meal.getName()}\n`;
+                    let mealPrice = "???";
+                    if (meal.getPrice() != null) mealPrice = meal.getPrice().toFixed(2);
+
+                    mealText += `\`€ ${mealPrice}\` ${ratingText} ${meal.getName()}\n`;
                 });
 
                 if (mealText == "") mealText = "`---`";

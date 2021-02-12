@@ -207,8 +207,8 @@ export class BotService {
                                     const meal = new Meal();
                                     meal.setId(jsonMeal.id);
                                     meal.setName(jsonMeal.name);
-                                    meal.setPrice((jsonMeal.pricing.for[0]) / 100);
-
+                                    
+                                    if("pricing" in jsonMeal) meal.setPrice((jsonMeal.pricing.for[0]) / 100);
                                     if (meal.getId() in json.ratings.menu) meal.setRating(json.ratings.menu[meal.getId()].stars);
 
                                     meals.push(meal);
