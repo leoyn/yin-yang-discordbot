@@ -1,6 +1,9 @@
 export enum Permission {
     REACTIONROLE_CREATE,
     REACTIONROLE_DELETE,
+    RSSFEED_ADD,
+    RSSFEED_REMOVE,
+    RSSFEED_LIST,
     HELP,
     PHRASE,
     XKCD,

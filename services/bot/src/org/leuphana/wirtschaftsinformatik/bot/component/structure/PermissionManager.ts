@@ -20,6 +20,9 @@ export class PermissionManager {
         switch (permission) {
             case Permission.REACTIONROLE_DELETE:
             case Permission.REACTIONROLE_CREATE:
+            case Permission.RSSFEED_ADD:
+            case Permission.RSSFEED_REMOVE:
+            case Permission.RSSFEED_LIST:
                 state = member.permissions.has("ADMINISTRATOR");
                 break;
             default:

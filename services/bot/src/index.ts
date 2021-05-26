@@ -16,9 +16,15 @@ const server = http.createServer((request, response) => {
     response.end();
 });
 
-BotService.getInstance()
-    .connect(process.env.DISCORD_TOKEN)
+const botService = BotService.getInstance();
+
+botService.connect(process.env.DISCORD_TOKEN)
     .then(() => {
-        console.log("Bot connected!");
+        console.info("Bot connected!");
         server.listen(8080);
+
+        // sync every 60 seconds
+        setInterval(() => {
+            botService.synchronizeRSSFeeds();
+        }, 60 * 1000);
     });

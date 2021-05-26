@@ -1,4 +1,4 @@
-import { Client, GuildMember, Message, MessageReaction } from "discord.js";
+import { Client, DiscordAPIError, GuildMember, Message, MessageEmbed, MessageReaction, TextChannel } from "discord.js";
 import { CommandDispatcher } from "../structure/CommandDispatcher";
 import { EventHandler } from "../structure/EventHandler";
 import { DatabaseConnector } from "../../connector/DatabaseConnector";
@@ -7,6 +7,9 @@ import { HttpConnector } from "../../connector/HttpConnector";
 import { MealPlan } from "../structure/models/MealPlan";
 import { Meal } from "../structure/models/Meal";
 import { MealDay } from "../structure/models/MealDay";
+import { RSSFeed } from "../structure/models/RSSFeed";
+import { RSSItem } from "../structure/models/RSSItem";
+import Parser = require("rss-parser");
 
 export class BotService {
     private static instance: BotService;
@@ -54,7 +57,7 @@ export class BotService {
 
     public createReationRole(message: Message, messageId: string, roleMention: string, emojiName: string): Promise<any> {
         const regex = /<@&(?<roleId>[0-9]+)>/;
-        if (!regex.test(roleMention)) throw new Error("Du musst die Rolle @role mention");
+        if (!regex.test(roleMention)) throw new Error("Du musst die Rolle @role erwähnen");
 
         const roleMatch = roleMention.match(regex);
         const roleId: string = roleMatch.groups.roleId;
@@ -69,7 +72,7 @@ export class BotService {
             .then((reactionMessage) => {
                 return DatabaseConnector.getInstance()
                     .query(
-                        "INSERT INTO reactionrole (messageid, roleid, emojiname) VALUES($1, $2, $3)",
+                        "INSERT INTO reactionrole (message_id, role_id, emojiname) VALUES($1, $2, $3)",
                         messageId,
                         roleId,
                         emojiName
@@ -85,7 +88,7 @@ export class BotService {
 
     public deleteReactionRole(message: Message, messageId: string): Promise<any> {
         return DatabaseConnector.getInstance().query(
-            "DELETE FROM reactionrole WHERE messageid = $1",
+            "DELETE FROM reactionrole WHERE message_id = $1",
             messageId,
         ).catch(() =>{
             throw new Error("Nachricht konnte nicht gefunden werden");
@@ -123,7 +126,7 @@ export class BotService {
     public addReactionRoleAssignment(messageReaction: MessageReaction, guildMember: GuildMember): void {
         DatabaseConnector.getInstance()
             .query(
-                "SELECT roleid FROM reactionrole WHERE messageid = $1 AND emojiname = $2 LIMIT 1",
+                "SELECT roleid FROM reactionrole WHERE message_id = $1 AND emojiname = $2 LIMIT 1",
                 messageReaction.message.id,
                 messageReaction.emoji.name
             )
@@ -138,7 +141,7 @@ export class BotService {
     public deleteReactionAssignment(messageReaction: MessageReaction, guildMember: GuildMember): void {
         DatabaseConnector.getInstance()
             .query(
-                "SELECT roleid FROM reactionrole WHERE messageId = $1 AND emojiname = $2 LIMIT 1",
+                "SELECT roleid FROM reactionrole WHERE message_id = $1 AND emojiname = $2 LIMIT 1",
                 messageReaction.message.id,
                 messageReaction.emoji.name
             )
@@ -224,6 +227,120 @@ export class BotService {
                 mealPlan.setMealDays(mealDays);
                 resolve(mealPlan);
             });
+        });
+    }
+
+    public addRSSFeed(url: string, channelId: string): Promise<RSSFeed> {
+        return new Promise((resolve, reject) => {
+            DatabaseConnector.getInstance().query("INSERT INTO feed (url, channel_id) VALUES($1, $2) RETURNING *", url, channelId).then((result) => {
+                const rssFeed: RSSFeed = new RSSFeed();
+                rssFeed.setId(result.rows[0].id);
+                rssFeed.setUrl(url);
+                rssFeed.setChannelId(channelId);
+                resolve(rssFeed);
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
+    public getRSSFeeds(): Promise<Array<RSSFeed>> {
+        return new Promise((resolve, reject) => {
+            DatabaseConnector.getInstance().query("SELECT id, url, channel_id FROM feed").then((result) => {
+                const rssFeeds: Object = {};
+
+                result.rows.forEach((feed) => {
+                    const rssFeed = new RSSFeed();
+                    rssFeed.setId(feed.id);
+                    rssFeed.setUrl(feed.url);
+                    rssFeed.setChannelId(feed.channel_id);
+                    
+                    rssFeeds[feed.id] = rssFeed;
+                });
+
+                DatabaseConnector.getInstance().query("SELECT id, guid, title, description, url, feed_id FROM item").then((result) => {
+                    result.rows.forEach((item) => {
+                        const rssItem = new RSSItem();
+                        rssItem.setId(item.id);
+                        rssItem.setGuid(item.guid);
+                        rssItem.setTitle(item.title);
+                        rssItem.setDescription(item.description);
+                        rssItem.setUrl(item.url);
+
+                        rssFeeds[item.feed_id].getItems().push(rssItem);
+                    });
+
+                    resolve(Object.values(rssFeeds));
+                }).catch((err) => {
+                    reject(err);
+                })
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
+    public removeRSSFeed(url: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            DatabaseConnector.getInstance().query("DELETE FROM feed WHERE url = $1", url).then(() => {
+                resolve();
+            }).catch((err) => {
+                reject(err);
+            });
+        });
+    }
+
+    private addRSSItemToRSSFeed(rssItem: RSSItem, feedId: number): Promise<RSSItem> {
+        return new Promise((resolve, reject) => {
+            DatabaseConnector.getInstance().query("INSERT INTO item (guid, title, description, url, feed_id) VALUES($1, $2, $3, $4, $5) RETURNING *", rssItem.getGuid(), rssItem.getTitle(), rssItem.getDescription(), rssItem.getUrl(), feedId).then((result) => {
+                rssItem.setId(result.rows[0].id);
+                resolve(rssItem);
+            }).catch(err => {
+                reject(err);
+            });
+        });
+    }
+
+    public synchronizeRSSFeeds(): Promise<void> {
+        return new Promise(async (resolve, reject) => {
+            const rssFeeds = await this.getRSSFeeds();
+            const parser: Parser = new Parser();
+
+            rssFeeds.forEach(async (rssFeed) => {
+                const feed = await parser.parseURL(rssFeed.getUrl());
+
+                feed.items.reverse().forEach(async (item) => {
+                    try {
+                        const rssItem: RSSItem = new RSSItem();
+                        rssItem.setGuid(item.guid);
+                        rssItem.setTitle(item.title);
+                        rssItem.setDescription(item.contentSnippet);
+                        rssItem.setUrl(item.link);
+                        rssItem.setImage(feed.image.url);
+                        rssItem.setDate(new Date(item.isoDate));
+                    
+                        await this.addRSSItemToRSSFeed(rssItem, rssFeed.getId());
+
+                        const channel = await this.client.channels.fetch(rssFeed.getChannelId().toString());
+
+                        if (channel instanceof TextChannel) {
+                            const messageEmbed = new MessageEmbed();
+
+                            messageEmbed.setTitle(rssItem.getTitle());
+                            messageEmbed.setURL(rssItem.getUrl());
+                            messageEmbed.setDescription(rssItem.getDescription());
+                            messageEmbed.setImage(rssItem.getImage());
+                            messageEmbed.setTimestamp(rssItem.getDate());
+
+                            (channel as TextChannel).send(messageEmbed);
+                        }
+                    } catch (err) {
+                        // TODO: Better logging
+                    }
+                });
+            });
+
+            resolve();
         });
     }
 }
