@@ -1,11 +1,14 @@
 import { DMChannel, Message, TextChannel } from "discord.js";
+import { AddRSSFeedCommand } from "./command/AddRSSFeedCommand";
 import { Command } from "./command/Command";
 import { CreateReactionRoleCommand } from "./command/CreateReactionRoleCommand";
 import { DeleteReactionRoleCommand } from "./command/DeleteReactionRoleCommand";
 import { GetMealPlanCommand } from "./command/GetMealPlanCommant";
 import { GetNewestXKCDCommand } from "./command/GetNewestXKCDCommand";
+import { GetRSSFeedsCommand } from "./command/GetRSSFeedsCommand";
 import { HelpCommand } from "./command/HelpCommand";
 import { RecognizablePhraseCommand } from "./command/RecognizablePhraseCommand";
+import { RemoveRSSFeedCommand } from "./command/RemoveRSSFeedCommand";
 import { PermissionManager } from "./PermissionManager";
 
 export class CommandDispatcher {
@@ -39,6 +42,15 @@ export class CommandDispatcher {
                     break;
                 case "mensa":
                     command = new GetMealPlanCommand();
+                    break;
+                case "rss-add":
+                    command = new AddRSSFeedCommand();
+                    break;
+                case "rss-remove":
+                    command = new RemoveRSSFeedCommand();
+                    break;
+                case "rss-list":
+                    command = new GetRSSFeedsCommand();
                     break;
             }
 
